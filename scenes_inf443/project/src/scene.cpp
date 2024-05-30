@@ -66,9 +66,9 @@ void scene_structure::initialize()
 
 	terre.initialize_data_on_gpu(sphere_terre);
 	
-	terre.texture.load_and_initialize_texture_2d_on_gpu(project::path + "assets/Placeholder Earth.jpg");
+	terre.texture.load_and_initialize_texture_2d_on_gpu(project::path + "assets/Placeholder_Earth.jpg");
 	terre.supplementary_texture["normalMap"].load_and_initialize_texture_2d_on_gpu(project::path + "assets/Normal_Map.jpg");
-	terre.supplementary_texture["heightMap"].load_and_initialize_texture_2d_on_gpu(project::path + "assets/Topo Custom3.png");
+	terre.supplementary_texture["heightMap"].load_and_initialize_texture_2d_on_gpu(project::path + "assets/Topo_Custom3.png");
 
 	auto struct_shape = mesh_load_file_obj_advanced(project::path + "assets/AVION-HELICE-TEST/", "AVION-HELICE-TEST.obj");
 	shapes = mesh_obj_advanced_loader::convert_to_mesh_drawable(struct_shape);
@@ -95,9 +95,6 @@ void scene_structure::initialize()
 	shadow.load(
 		project::path + "shaders/shadow/shadow.vert.glsl",
 		project::path + "shaders/shadow/shadow.frag.glsl");
-	shader_custom.load(
-		project::path + "shaders/mesh_custom/mesh_custom.vert.glsl",
-		project::path + "shaders/mesh_custom/mesh_custom.frag.glsl");
 
 	shader.load(
 		project::path + "shaders/mesh/mesh.vert.glsl",
