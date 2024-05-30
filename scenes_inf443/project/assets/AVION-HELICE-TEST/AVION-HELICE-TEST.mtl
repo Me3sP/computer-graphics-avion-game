@@ -1,0 +1,222 @@
+# MTL file - created by a modified js OBJExporter
+
+newmtl AMORTIS
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.7621585726737976
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0.1921568661928177 0.1921568661928177 0.1921568661928177
+Ke 0 0 0
+map_kd bomb.jpeg
+map_bump bump.jpeg
+
+newmtl JANTES
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.7621585726737976
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0.5 0.5 0.5
+Ke 0 0 0
+map_Kd echap.jpeg
+
+newmtl BOMBE
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.8585786819458008
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0.11372549086809158 0.11372549086809158 0.11372549086809158
+Ke 0 0 0
+map_Kd bomb.jpeg
+map_bump bump.jpeg
+
+newmtl echappement
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.8585786819458008
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0.3294117748737335 0.3294117748737335 0.3294117748737335
+Ke 0 0 0
+map_Kd echap.jpeg
+
+
+newmtl parebrise
+Tr 0.5
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.6517797708511353
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0.21568627655506134 0.6705882549285889 0.6745098233222961
+Ke 0 0 0
+map_Kd metal-blue.jpeg
+
+newmtl entourage_MOTEUR
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.8585786819458008
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0.1725490242242813 0.07058823853731155 0.19607843458652496
+Ke 0 0 0
+map_Kd metal_rust.jpeg
+
+
+newmtl BOMBE2
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.8585786819458008
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0.08235294371843338 0.3803921639919281 0.05882352963089943
+Ke 0 0 0
+map_Kd bomb.jpeg
+map_bump bump.jpeg
+
+newmtl PNEU
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.7621585726737976
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0 0 0
+Ke 0 0 0
+map_Kd PNEU.jpeg
+
+newmtl CONE
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.6394997835159302
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0.20000000298023224 0.20000000298023224 0.20000000298023224
+Ke 0 0 0
+map_Kd bomb.jpeg
+map_bump bump.jpeg
+
+
+newmtl CONEBIS
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.8585786819458008
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 1 0.2823529541492462 0
+Ke 0 0 0
+map_Kd bomb.jpeg
+map_bump bump.jpeg
+
+
+newmtl BAGUE
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.8585786819458008
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0.027450980618596077 0.24705882370471954 0.3490196168422699
+Ke 0 0 0
+map_Kd metal_rust.jpeg
+
+
+
+newmtl CARLINGUE
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.8484283685684204
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 1 0.2078431397676468 0
+Ke 0 0 0
+map_Kd AdobeStock_81856967.jpeg
+map_bump bumpcarlingue.jpeg
+
+newmtl AILES
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.8484283685684204
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 1 0.1411764770746231 0
+Ke 0 0 0
+map_Kd ailes.jpeg
+map_bump bumpailes.jpeg
+
+
+
+newmtl cuirinter
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.8585786819458008
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0.2705882489681244 0.09803921729326248 0.0117647061124444
+Ke 0 0 0
+map_Kd AdobeStock_81856967.jpeg
+
+
+newmtl cuir
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.5561721920967102
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0.12941177189350128 0.04313725605607033 0.007843137718737125
+Ke 0 0 0
+map_Kd toile-de-jute.jpg
+
+newmtl BOUTON
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.8585786819458008
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 1 0 0
+Ke 0 0 0
+map_Kd bomb.jpeg
+map_bump bump.jpeg
+
+newmtl ELICE
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.5405206680297852
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0.27843138575553894 0.09019608050584793 0.01568627543747425
+Ke 0 0 0
+map_Kd helice.jpeg
