@@ -9,13 +9,12 @@
 // Chroma upsampling reference: "Fast Scheme for Image Size Change in the Compressed Domain"
 // http://vision.ai.uiuc.edu/~dugad/research/dct/index.html
 
-#if defined(__linux__) || defined(__EMSCRIPTEN__) || defined(__APPLE__)
+#if defined(__linux__) || defined(__EMSCRIPTEN__)
 #pragma GCC diagnostic ignored "-Wshift-negative-value"
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #endif
 
 #include "jpgd.h"
