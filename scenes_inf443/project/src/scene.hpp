@@ -21,9 +21,7 @@ struct gui_parameters {
 
 	bool rotate_terre = false;
 	bool vue_haut = false;
-	
-
-	float frequency = 5;
+	bool overview = false;
 
 };
 
@@ -33,17 +31,21 @@ struct scene_structure : cgp::scene_inputs_generic {
 	// ****************************** //
 	// Elements and shapes of the scene
 	// ****************************** //
-	camera_controller_orbit camera_control;
+	camera_controller_orbit_euler camera_control;
+	camera_controller_orbit camera_control1;
 	camera_controller_orbit camera_control2;
 	camera_projection_perspective camera_projection;
 	window_structure window;
-	vec3 light2 = { 0.0f,0.0f,100.0f };
+	vec3 light1 = { 0.026419, - 6.684455, 10.587660 };
+	vec3 light2 = { 0.0f,0.0f,10.0f };
+	
 	float w;
 	float delta_d; // le déplacement élementaire de l'avion quand on fait varier son altitude
-	float d_max;
+	float d_max; //limiter l'altitude....
+	float d_min = 1.004f; // ...  de l'avion
 	float delta_alpha = 0.01f; // angle de rotation élémentaire quand on fait varier
 	float c_alpha = 0.0f; //permet de limiter la rotation totale de l'avion lorsque son altitude augmente
-	float c_d = 0.0f; //permet de limiter l'altitude de l'avion
+	float c_d = 0.0f;
 
 	camera_controller_orbit_euler lightcamera;
 	camera_projection_orthographic light_projection;

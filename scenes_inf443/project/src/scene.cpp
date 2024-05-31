@@ -11,7 +11,7 @@ void scene_structure::initialize()
 	// Set the behavior of the camera and its initial position
 	// ********************************************** //
 	camera_control.initialize(inputs, window); 
-	//camera_control.set_rotation_axis_z(); // camera rotates around z-axis
+	camera_control.set_rotation_axis_z(); // camera rotates around z-axis
 	//   look_at(camera_position, targeted_point, up_direction)
 	camera_control.look_at(
 		environment.light /* position of the camera in the 3D scene */,
@@ -19,15 +19,23 @@ void scene_structure::initialize()
 		{0.0f,1.0f,0.0f} /* direction of the "up" vector */);
 
 
+	camera_control1.initialize(inputs, window);
+	//camera_control.set_rotation_axis_z(); // camera rotates around z-axis
+	//   look_at(camera_position, targeted_point, up_direction)
+	camera_control1.look_at(
+		light1 /* position of the camera in the 3D scene */,
+		{ 0.0f,0.8f,0.2f } /* targeted point in 3D scene */,
+		{ 0.0f,1.0f,0.0f } /* direction of the "up" vector */);
+
 	camera_control2.initialize(inputs, window);
 	//camera_control.set_rotation_axis_z(); // camera rotates around z-axis
 	//   look_at(camera_position, targeted_point, up_direction)
 	camera_control2.look_at(
 		light2 /* position of the camera in the 3D scene */,
-		{ 0.0f,0.0f,45.0f } /* targeted point in 3D scene */,
+		{ 0.0f,0.0f,1.1f } /* targeted point in 3D scene */,
 		{ 0.0f,1.0f,0.0f } /* direction of the "up" vector */);
 	camera_projection.depth_max = 5000;
-	camera_projection.field_of_view = Pi / 60;
+	
 	
 
 
@@ -66,7 +74,7 @@ void scene_structure::initialize()
 
 	terre.initialize_data_on_gpu(sphere_terre);
 	
-	terre.texture.load_and_initialize_texture_2d_on_gpu(project::path + "assets/Placeholder_Earth.jpg");
+	terre.texture.load_and_initialize_texture_2d_on_gpu(project::path + "assets/combined_image_max_quality.jpg");
 	terre.supplementary_texture["normalMap"].load_and_initialize_texture_2d_on_gpu(project::path + "assets/Normal_Map.jpg");
 	terre.supplementary_texture["heightMap"].load_and_initialize_texture_2d_on_gpu(project::path + "assets/Topo_Custom3.png");
 
@@ -77,10 +85,10 @@ void scene_structure::initialize()
 	for (int k = 0; k < shapes.size(); ++k) {
 
 
-		shapes[k].model.scaling = 0.0001f;
+		shapes[k].model.scaling = 0.0003f;
 		shapes[k].model.rotation = rotation_transform::from_axis_angle({0,1,0}, Pi) * 
-			rotation_transform::from_axis_angle({ 1,0,0 }, -(Pi/2 - 0.3f));
-		shapes[k].model.translation = { 0,0,1.2f };
+			rotation_transform::from_axis_angle({ 1,0,0 }, -Pi/2);
+		shapes[k].model.translation = { 0,0,1.1f };
 	}
 
 
@@ -119,36 +127,56 @@ void scene_structure::display_frame()
 {
 	glEnable(GL_CULL_FACE);
 
+
 	if (gui.vue_haut) {
 
-		environment.light = camera_control2.camera_model.position();
+		camera_projection.field_of_view = Pi / 18;
+
 		environment.camera_view = camera_control2.camera_model.matrix_view();
 		w = 0.0001f;
-		delta_d = 1.0f;
-		d_max = 500.0f;
-		//camera_projection.field_of_view = Pi / 18;
+		d_max = 11.1f;
+		
+		delta_d = 0.1f;
 	}
-	else {
+	else if (gui.overview) {
+
+		d_max = 1.8f;
+		delta_d = 0.004f;
+		camera_projection.field_of_view = Pi / 2;
+		environment.camera_view = camera_control.camera_model.matrix_view();
+
+		if (shapes[0].model.translation.z > d_max) {
+
+			for (int k = 0; k < shapes.size(); ++k) {
+
+				shapes[k].model.translation.z = d_max;
+			}
+		}
+
+		
+	}
+	else{
+
+		camera_projection.field_of_view = Pi / 80;
 
 		w = 0.00007f;
-		d_max = 30.0f;
-		delta_d = 0.04f;
-		//camera_projection.field_of_view = Pi / 60;
+		d_max = 1.8f;
+		delta_d = 0.004f;
+		
+		if (shapes[0].model.translation.z > d_max) {
 
-		if (ImGui::Button("reset_view")) {
+			for (int k = 0; k < shapes.size(); ++k) {
 
-			camera_control.look_at(
-				{ 0.0f,-27.0f,64.0f + c_d } /* position of the camera in the 3D scene */,
-				{ 0.0f,1.6f,45.0f + c_d } /* targeted point in 3D scene */,
-				{ 0.0f,1.0f,0.0f } /* direction of the "up" vector */);
-		}
-		else {
-
-			environment.light = camera_control.camera_model.position();
-			environment.camera_view = camera_control.camera_model.matrix_view();
-			
+				shapes[k].model.translation.z = d_max;
+			}
 		}
 
+			environment.camera_view = camera_control1.camera_model.matrix_view();
+			environment.light = camera_control1.camera_model.position();
+
+			if (ImGui::Button("cam_pos")) {
+				std::cout << camera_control1.camera_model.position() << std::endl;
+			}
 	}
 
 
@@ -157,7 +185,6 @@ void scene_structure::display_frame()
 	timer.update();
 	environment.uniform_generic.uniform_float["time"] = timer.t;
 	environment.uniform_generic.uniform_float["pi"] = Pi;
-	environment.uniform_generic.uniform_float["f"] = gui.frequency;
 
 	
 
@@ -168,9 +195,6 @@ void scene_structure::display_frame()
 
 	for (int k = 0; k < shapes.size(); ++k) {
 
-		//shapes[k].model.rotation *= rotation_transform::from_vector_transform(tang, current_or);
-		//shapes[k].model.rotation *= rotation_transform::from_axis_angle({ 1,0,0 },timer.t);
-		//shapes[k].model.translation = {0.0f, 15.0f * sin(w*timer.t), 15.0f*cos(w*timer.t)};
 		draw(shapes[k], environment);
 	}
 	
@@ -205,12 +229,12 @@ void scene_structure::display_gui()
 
 	ImGui::Checkbox("vue_2_haut", &gui.vue_haut);
 
-	ImGui::SliderFloat("camel-x", &camel.model.translation.x, -2.0f, 2.0f);
+	ImGui::Checkbox("overview", &gui.overview);
+
+	ImGui::SliderFloat("camHAUT-Z", &camel.model.translation.x, -2.0f, 2.0f);
 
 
 	//ImGui::SliderFloat("fov", &camera_projection.field_of_view, 10.0f * Pi / 180.0f, 150.0 * Pi / 180.0f);
-
-	ImGui::SliderFloat("frequency", &gui.frequency, -0.0f, 15.0f);
 }
 
 void scene_structure::mouse_move_event()
@@ -251,22 +275,16 @@ void scene_structure::keyboard_event()
 }
 void scene_structure::idle_frame()
 {
-	//camera_control.idle_frame(environment.camera_view);
+	camera_control.idle_frame(environment.camera_view);
 	
 
 	if (inputs.keyboard.up) {
 
 		c_alpha += delta_alpha;
-		c_d += delta_d;
 
-		if (c_alpha < Pi / 10) {
-			for (int k = 0; k < shapes.size(); ++k) {
+		if (shapes[0].model.translation.z < d_max) {
 
-				shapes[k].model.rotation *= rotation_transform::from_axis_angle({ -1,0,0 }, delta_alpha);
-			}
-		}
-
-		if (c_d < d_max) {
+			c_d += delta_d;
 
 			for (int k = 0; k < shapes.size(); ++k) {
 
@@ -274,12 +292,20 @@ void scene_structure::idle_frame()
 			}
 
 			camera_control2.camera_model.manipulator_translate_front(delta_d);
+			if (c_d <= 0.7f) {
+				camera_control1.look_at(
+					{ light1.x, light1.y,light1.z + c_d } /* position of the camera in the 3D scene */,
+					{ 0.0f,0.8f,0.2f + c_d } /* targeted point in 3D scene */,
+					{ 0.0f,1.0f,0.0f } /* direction of the "up" vector */);
+			}
+		}
+		if (c_alpha < Pi / 10 && shapes[0].model.translation.z < d_max) {
 
-			camera_control.look_at(
-				{ 0.0f,-27.0f,64.0f  + c_d } /* position of the camera in the 3D scene */,
-				{ 0.0f,1.6f,45.0f + c_d } /* targeted point in 3D scene */,
-				{ 0.0f,1.0f,0.0f } /* direction of the "up" vector */);
 
+			for (int k = 0; k < shapes.size(); ++k) {
+
+				shapes[k].model.rotation *= rotation_transform::from_axis_angle({ -1,0,0 }, delta_alpha);
+			}
 		}
 
 
@@ -291,9 +317,55 @@ void scene_structure::idle_frame()
 		for (int k = 0; k < shapes.size(); ++k) {
 
 			shapes[k].model.rotation = rotation_transform::from_axis_angle({ 0,1,0 }, Pi) *
-				rotation_transform::from_axis_angle({ 1,0,0 }, -(Pi / 2 - 0.3f));
+				rotation_transform::from_axis_angle({ 1,0,0 }, -Pi / 2);
 		}
 	
+	}
+
+
+
+	if (inputs.keyboard.down) {
+
+		c_alpha += delta_alpha;
+
+		if (shapes[0].model.translation.z > d_min) {
+
+			c_d -= delta_d;
+
+			for (int k = 0; k < shapes.size(); ++k) {
+
+				shapes[k].model.translation += { 0.0f, 0.0f, -delta_d };
+			}
+
+			camera_control2.camera_model.manipulator_translate_front(-delta_d);
+
+			camera_control1.look_at(
+				{ light1.x, light1.y,light1.z + c_d } /* position of the camera in the 3D scene */,
+				{ 0.0f,0.8f,0.2f + c_d } /* targeted point in 3D scene */,
+				{ 0.0f,1.0f,0.0f } /* direction of the "up" vector */);
+
+		}
+
+		if (c_alpha < Pi / 10 && shapes[0].model.translation.z > d_min) {
+
+			for (int k = 0; k < shapes.size(); ++k) {
+
+				shapes[k].model.rotation *= rotation_transform::from_axis_angle({ 1,0,0 }, delta_alpha);
+			}
+		}
+
+
+	}
+	if (inputs.keyboard.last_action.is_released(GLFW_KEY_DOWN)) {
+
+		c_alpha = 0.0f;
+
+		for (int k = 0; k < shapes.size(); ++k) {
+
+			shapes[k].model.rotation = rotation_transform::from_axis_angle({ 0,1,0 }, Pi) *
+				rotation_transform::from_axis_angle({ 1,0,0 }, -Pi / 2);
+		}
+
 	}
 }
 
