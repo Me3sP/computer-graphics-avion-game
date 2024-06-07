@@ -60,6 +60,8 @@ struct scene_structure : cgp::scene_inputs_generic {
 	// Elements and shapes of the scene
 	// ****************************** //
 
+    cgp::skybox_drawable skybox;
+
 	timer_basic timer;
 	mesh_drawable ground;
 	mesh_drawable cube;
@@ -78,6 +80,7 @@ struct scene_structure : cgp::scene_inputs_generic {
 
 	picking_structure pick;
 	vec3 current_or = { 0,1,0 };
+    int p=0;
 
 
 

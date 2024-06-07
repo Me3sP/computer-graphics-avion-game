@@ -68,7 +68,7 @@ void main()
 	// Compute the position of the center of the camera
 	mat3 O = transpose(mat3(view));                   // get the orientation matrix
 	vec3 last_col = vec3(view*vec4(0.0, 0.0, 0.0, 1.0)); // get the last column
-	vec3 camera_position = -O*last_col;
+        vec3 camera_position = -O*last_col;
 
 
 	// Renormalize normal
