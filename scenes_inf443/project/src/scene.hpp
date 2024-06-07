@@ -80,7 +80,7 @@ struct scene_structure : cgp::scene_inputs_generic {
 
 	picking_structure pick;
 	vec3 current_or = { 0,1,0 };
-    int p=0;
+
 
 
 
