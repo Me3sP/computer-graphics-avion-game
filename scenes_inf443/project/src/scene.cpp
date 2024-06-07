@@ -97,6 +97,13 @@ void scene_structure::initialize()
 	trajectory = trajectory_drawable(100);
 	trajectory1 = trajectory_drawable(70);
 	trajectory2 = trajectory_drawable(70);
+    image_structure image_skybox_template = image_load_file(project::path + "assets/skybox.png");
+    // Split the image into a grid of 4 x 3 sub-images
+    std::vector<image_structure> image_grid = image_split_grid(image_skybox_template, 4, 3);
+    skybox.initialize_data_on_gpu();
+    skybox.texture.initialize_cubemap_on_gpu(image_grid[1], image_grid[7], image_grid[5], image_grid[3], image_grid[10], image_grid[4]);
+
+
 
 	// Create the shapes seen in the 3D scene
 	// ********************************************** //
@@ -108,6 +115,14 @@ void scene_structure::initialize()
 	
 	terre.texture.load_and_initialize_texture_2d_on_gpu(project::path + "assets/combined_image_max_quality.jpg");
 	terre.supplementary_texture["heightMap"].load_and_initialize_texture_2d_on_gpu(project::path + "assets/Topo_Custom3.png");
+    terre.supplementary_texture["CmpheightMap"].load_and_initialize_texture_2d_on_gpu(project::path + "assets/topo_and_bathy.jpg");
+    terre.supplementary_texture["WaveA"].load_and_initialize_texture_2d_on_gpu(project::path + "assets/Wave_A.png", GL_REPEAT,  GL_REPEAT);
+    terre.supplementary_texture["WaveB"].load_and_initialize_texture_2d_on_gpu(project::path + "assets/Wave_B.png", GL_REPEAT,  GL_REPEAT);
+    terre.supplementary_texture["WaveC"].load_and_initialize_texture_2d_on_gpu(project::path + "assets/Wave_C.jpg", GL_REPEAT,  GL_REPEAT);
+    terre.supplementary_texture["WaveD"].load_and_initialize_texture_2d_on_gpu(project::path + "assets/Wave_D.jpg", GL_REPEAT,  GL_REPEAT);
+
+
+
 
 	auto struct_shape = mesh_load_file_obj_advanced(project::path + "assets/AVION-HELICE-TEST/", "AVION-HELICE-TEST.obj");
 	shapes = mesh_obj_advanced_loader::convert_to_mesh_drawable(struct_shape);
@@ -160,8 +175,13 @@ void scene_structure::initialize()
 // Note that you should avoid having costly computation and large allocation defined there. This function is mostly used to call the draw() functions on pre-existing data.
 void scene_structure::display_frame()
 {
-	glEnable(GL_CULL_FACE);
+
 	vecDir = rotation_transform::from_axis_angle(vecHaut, Pi / 2) * vecRot;
+    //glEnable(GL_CULL_FACE);
+
+    glDepthMask(GL_FALSE); // disable depth-buffer writing
+    draw(skybox, environment);
+    glDepthMask(GL_TRUE);  // re-activate depth-buffer write
 
 
 	if (gui.vue_haut) {
@@ -183,7 +203,9 @@ void scene_structure::display_frame()
 	else if (gui.overview) {
 		delta_d = 0.01f; // le déplacement élementaire de l'avion quand on fait varier son altitude
 		d_max = 1.8f;
+
 		camera_projection.field_of_view = Pi / 4;
+
 		environment.camera_view = camera_control.camera_model.matrix_view();
 
 		if (shapes[0].model.translation.z > d_max) {
@@ -226,7 +248,6 @@ void scene_structure::display_frame()
 				std::cout << camera_control1.camera_model.position() << std::endl;
 			}
 	}
-
 
 
 	// Update time
@@ -302,7 +323,7 @@ void scene_structure::display_frame()
 
 	// conditional display of the global frame (set via the GUI)
 	if (gui.display_frame)
-	draw(global_frame, environment);
+    draw(global_frame, environment);
 
 }
 

@@ -41,10 +41,10 @@ struct scene_structure : cgp::scene_inputs_generic {
 	vec3 light2 = { 0.0f,0.0f,7.0f };
 	
 	float w = 0.003f;
-	float delta_d; // le déplacement élementaire de l'avion quand on fait varier son altitude
+	float delta_d; // le dï¿½placement ï¿½lementaire de l'avion quand on fait varier son altitude
 	float d_max; //limiter l'altitude....
 	float d_min = 1.004f; // ...  de l'avion
-	float delta_alpha = 0.02f; // angle de rotation élémentaire quand on fait varier
+	float delta_alpha = 0.02f; // angle de rotation ï¿½lï¿½mentaire quand on fait varier
 	float c_alpha = 0.0f; //permet de limiter la rotation totale de l'avion lorsque son altitude augmente
 	float maxFloat = std::numeric_limits<float>::max();
 
@@ -60,6 +60,8 @@ struct scene_structure : cgp::scene_inputs_generic {
 	// ****************************** //
 	// Elements and shapes of the scene
 	// ****************************** //
+
+    cgp::skybox_drawable skybox;
 
 	timer_basic timer;
 	mesh_drawable sun;
