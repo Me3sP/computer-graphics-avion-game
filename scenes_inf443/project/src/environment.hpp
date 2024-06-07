@@ -19,6 +19,7 @@ struct environment_structure : environment_generic_structure
 
 	// The position of a light
 	vec3 light;
+	vec3 sun_color;
 
 	// Additional uniforms that can be attached to the environment if needed (empty by default)
 	uniform_generic_structure uniform_generic;

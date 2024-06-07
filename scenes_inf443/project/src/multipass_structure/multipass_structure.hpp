@@ -21,4 +21,3 @@ struct multipass_structure {
 	void draw_pass_2(cgp::environment_generic_structure const& environment);
 	void end_pass_2();
 };
-

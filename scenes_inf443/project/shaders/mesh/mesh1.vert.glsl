@@ -23,6 +23,7 @@ uniform mat4 view;  // View matrix (rigid transform) of the camera
 uniform mat4 projection; // Projection (perspective or orthogonal) matrix of the camera
 uniform sampler2D heightMap;   // Texture image identifiant
 
+uniform float pi;
 
 void main()
 {
@@ -33,7 +34,7 @@ void main()
 	float alpha = texture(heightMap, uv_image).r;
 
 	// The position of the vertex in the world space
-	vec4 position = model * vec4(vertex_position /*+ 0.20*(alpha - 0.5)*normalize(vertex_normal)*/, 1.0);
+	vec4 position =  model *vec4(vertex_position + 0.05*(alpha - 0.5)*normalize(vertex_normal), 1.0);
 
 	// The normal of the vertex in the world space
 	mat4 modelNormal = transpose(inverse(model));

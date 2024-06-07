@@ -6,7 +6,8 @@ float project::gui_scale = 1.5f;
 environment_structure::environment_structure()
 {
 	background_color = { 0.51f,0.28f,0.3f };
-	light = { 1,-1,1 };
+	light = { 0,0.0,8.0f };
+	sun_color = { 1, 1, 1};
 }
 
 

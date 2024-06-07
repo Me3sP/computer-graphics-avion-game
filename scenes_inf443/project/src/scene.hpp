@@ -4,6 +4,8 @@
 #include "cgp/cgp.hpp"
 #include "environment.hpp"
 #include "multipass_structure/multipass_structure.hpp"
+#include <limits>
+
 
 // This definitions allow to use the structures: mesh, mesh_drawable, etc. without mentionning explicitly cgp::
 using cgp::mesh;
@@ -14,12 +16,11 @@ using cgp::timer_basic;
 
 // Variables associated to the GUI (buttons, etc)
 struct gui_parameters {
-	bool display_frame = true;
+	bool display_frame = false;
 
 	// Ajout de la nouvelle variable display_wireframe ici
 	bool display_wireframe = false;
 
-	bool rotate_terre = false;
 	bool vue_haut = false;
 	bool overview = false;
 
@@ -36,16 +37,16 @@ struct scene_structure : cgp::scene_inputs_generic {
 	camera_controller_orbit camera_control2;
 	camera_projection_perspective camera_projection;
 	window_structure window;
-	vec3 light1 = { 0.026419, - 6.684455, 10.587660 };
-	vec3 light2 = { 0.0f,0.0f,10.0f };
+	vec3 light1 = { 0.0f, - 8.0f, 12.0f };
+	vec3 light2 = { 0.0f,0.0f,7.0f };
 	
-	float w;
+	float w = 0.003f;
 	float delta_d; // le déplacement élementaire de l'avion quand on fait varier son altitude
 	float d_max; //limiter l'altitude....
 	float d_min = 1.004f; // ...  de l'avion
-	float delta_alpha = 0.01f; // angle de rotation élémentaire quand on fait varier
+	float delta_alpha = 0.02f; // angle de rotation élémentaire quand on fait varier
 	float c_alpha = 0.0f; //permet de limiter la rotation totale de l'avion lorsque son altitude augmente
-	float c_d = 0.0f;
+	float maxFloat = std::numeric_limits<float>::max();
 
 	camera_controller_orbit_euler lightcamera;
 	camera_projection_orthographic light_projection;
@@ -61,24 +62,25 @@ struct scene_structure : cgp::scene_inputs_generic {
 	// ****************************** //
 
 	timer_basic timer;
-	mesh_drawable ground;
-	mesh_drawable cube;
-	mesh_drawable sphere;
-	mesh_drawable camel;
+	mesh_drawable sun;
 	mesh_drawable terre;
-	mesh_drawable cube1;
+	trajectory_drawable trajectory;
+	trajectory_drawable trajectory1;
+	trajectory_drawable trajectory2;
+
 
 	multipass_structure multi;
-	opengl_shader_structure shader_custom;
-	opengl_shader_structure quadshader;
+	opengl_shader_structure shader_quad;
 	opengl_shader_structure shadow;
 	opengl_shader_structure shader;
 	opengl_shader_structure shader_terre;
 	std::vector<mesh_drawable> shapes;
 
 	picking_structure pick;
-	vec3 current_or = { 0,1,0 };
-
+	vec3 p = { 0,0,1.1f };
+	vec3 vecRot = { -1,0,0 };
+	vec3 vecHaut = { 0,0,1 };
+	vec3 vecDir;
 
 
 
@@ -90,6 +92,8 @@ struct scene_structure : cgp::scene_inputs_generic {
 	void initialize();    // Standard initialization to be called before the animation loop
 	void display_frame(); // The frame display to be called within the animation loop
 	void display_gui();   // The display of the GUI, also called within the animation loop
+
+	vec2 raySphere(vec3 sphereCenter, float radius, vec3 rayOrigin, vec3 rayDir);
 
 
 	void mouse_move_event();
