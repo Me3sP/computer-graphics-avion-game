@@ -28,7 +28,6 @@ layout(location=0) out vec4 FragColor;
 // ***************************************************** //
 
 uniform sampler2D image_texture;   // Texture image identifiant
-uniform sampler2D normalMap;
 uniform sampler2D heightMap;   // Texture image identifiant
 uniform sampler2D CmpheightMap;
 uniform sampler2D WaveA;
@@ -67,6 +66,7 @@ vec3 triplanarNormal(vec3 position, vec3 surfaceNormal , sampler2D norMap , floa
 uniform mat4 view;       // View matrix (rigid transform) of the camera - to compute the camera position
 
 uniform vec3 light; // position of the light
+uniform vec3 sun_color;
 
 
 // Coefficients of phong illumination model
@@ -123,7 +123,7 @@ void main()
 	// *************************************** //
 
 	// Unit direction toward the light
-	vec3 L = normalize(light-fragment.position);
+	vec3 L = normalize(light);
 
 	// Diffuse coefficient
 	float diffuse_component = max(dot(N,L),0.0);
@@ -179,10 +179,10 @@ void main()
 	vec3 color_object  = fragment.color * material.color * color_image_texture.rgb;
 
 	// Compute the final shaded color using Phong model
-        float Ka = 3*material.phong.ambient;
+    float Ka = 3*material.phong.ambient;
 	float Kd = material.phong.diffuse;
 	float Ks = material.phong.specular;
-        vec3 color_shading = (Ka + Kd*diffuse_component) * color_object + Ks * specular_component * vec3(1.0, 1.0, 1.0);
+    vec3 color_shading = (Ka + Kd*diffuse_component) * color_object + Ks * specular_component * vec3(1.0, 1.0, 1.0);
 	
 	// Output color, with the alpha component
 	FragColor = vec4(color_shading, material.alpha * color_image_texture.a);
