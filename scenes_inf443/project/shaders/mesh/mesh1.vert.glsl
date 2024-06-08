@@ -1,7 +1,5 @@
 #version 330 core
 
-// Vertex shader - this code is executed for every vertex of the shape
-
 // Inputs coming from VBOs
 layout (location = 0) in vec3 vertex_position; // vertex position in local space (x,y,z)
 layout (location = 1) in vec3 vertex_normal;   // vertex normal in local space   (nx,ny,nz)
@@ -15,6 +13,7 @@ out struct fragment_data
     vec3 normal;   // normal position in world space
     vec3 color;    // vertex color
     vec2 uv;       // vertex uv
+	vec4 FragPosLightSpace; //nouvelle composante néccessaire pour les ombres portés
 } fragment;
 
 // Uniform variables expected to receive from the C++ program
@@ -22,8 +21,11 @@ uniform mat4 model; // Model affine transform matrix associated to the current s
 uniform mat4 view;  // View matrix (rigid transform) of the camera
 uniform mat4 projection; // Projection (perspective or orthogonal) matrix of the camera
 uniform sampler2D heightMap;   // Texture image identifiant
-
+uniform mat4 lightview;
+uniform mat4 lightprojectionMatrix;
 uniform float pi;
+
+
 
 void main()
 {
@@ -34,7 +36,7 @@ void main()
 	float alpha = texture(heightMap, uv_image).r;
 
 	// The position of the vertex in the world space
-	vec4 position =  model *vec4(vertex_position + 0.05*(alpha - 0.5)*normalize(vertex_normal), 1.0);
+	vec4 position =  model *vec4(vertex_position + 0.1*(alpha - 0.5)*normalize(vertex_normal), 1.0);
 
 	// The normal of the vertex in the world space
 	mat4 modelNormal = transpose(inverse(model));
@@ -48,6 +50,7 @@ void main()
 	fragment.normal   = normal.xyz;
 	fragment.color = vertex_color;
 	fragment.uv = vertex_uv;
+	fragment.FragPosLightSpace = lightprojectionMatrix * lightview * position; 
 
 	// gl_Position is a built-in variable which is the expected output of the vertex shader
 	gl_Position = position_projected; // gl_Position is the projected vertex position (in normalized device coordinates)

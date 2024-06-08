@@ -1,14 +1,4 @@
 #version 330 core 
-// Fragment shader - this code is executed for every pixel/fragment that belongs to a displayed shape
-//
-// Compute the color using Phong illumination (ambient, diffuse, specular) 
-//  There is 3 possible input colors:
-//    - fragment_data.color: the per-vertex color defined in the mesh
-//    - material.color: the uniform color (constant for the whole shape)
-//    - image_texture: color coming from the texture image
-//  The color considered is the product of: fragment_data.color x material.color x image_texture
-//  The alpha (/transparent) channel is obtained as the product of: material.alpha x image_texture.a
-// 
 
 // Inputs coming from the vertex shader
 in struct fragment_data
@@ -17,27 +7,23 @@ in struct fragment_data
     vec3 normal;   // normal in the world space
     vec3 color;    // current color on the fragment
     vec2 uv;       // current uv-texture on the fragment
+    vec4 FragPosLightSpace;
 
 } fragment;
 
 // Output of the fragment shader - output color
 layout(location=0) out vec4 FragColor;
 
-
 // Uniform values that must be send from the C++ code
 // ***************************************************** //
-
 uniform sampler2D image_texture;   // Texture image identifiant
 uniform sampler2D heightMap;   // Texture image identifiant
 uniform sampler2D CmpheightMap;
-uniform sampler2D WaveA;
-uniform sampler2D WaveB;
-uniform sampler2D WaveC;
-uniform sampler2D WaveD;
-
-
+uniform sampler2D WaveC; // normal map ----
+uniform sampler2D WaveD; // ---pour les effets de vagues
+uniform sampler2D Depth; //buffer de profonder pour les ombres portées
 uniform float time;
-int p;
+
 vec3 triplanarNormal(vec3 position, vec3 surfaceNormal , sampler2D norMap , float scale , float sharpness){
 
     // Sample normal maps (tangent space)
@@ -59,15 +45,9 @@ vec3 triplanarNormal(vec3 position, vec3 surfaceNormal , sampler2D norMap , floa
 
 }
 
-
-
-
-
-uniform mat4 view;       // View matrix (rigid transform) of the camera - to compute the camera position
+uniform mat4 view; // View matrix (rigid transform) of the camera - to compute the camera position
 
 uniform vec3 light; // position of the light
-uniform vec3 sun_color;
-
 
 // Coefficients of phong illumination model
 struct phong_structure {
@@ -96,6 +76,37 @@ struct material_structure
 
 uniform material_structure material;
 
+float ShadowCalculation(vec4 fragPosLightSpace, vec3 lightDir)
+{
+    // effectuer la division pour la perspective
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+
+    // obtenir la plus proche valeur de profondeur du point de vue de la lumière
+    float closestDepth = texture(image_texture, projCoords.xy).r; 
+    // obtenir la profondeur pour le frag courrent du point de vue de la lumière
+    float currentDepth = projCoords.z;
+
+	float bias = max(0.01 * (1.0 - dot(fragment.normal, lightDir)), 0.005);//biais pour éviter les artefacts
+
+	float shadow = 0.0;
+	vec2 texelSize = 1.0 / textureSize(Depth, 0);
+	for(int x = -1; x <= 1; ++x)
+	{
+    	for(int y = -1; y <= 1; ++y)
+    	{
+       		float pcfDepth = texture(Depth, projCoords.xy + vec2(x, y) * texelSize).r; 
+        	shadow += currentDepth - bias> pcfDepth ? 1.0 : 0.0;        
+    	}    
+	}
+	shadow /= 9.0;
+
+	if(projCoords.z > 1.0)
+        shadow = 0.0;
+
+    return shadow;
+}
 
 void main()
 {
@@ -104,14 +115,13 @@ void main()
 	vec3 last_col = vec3(view*vec4(0.0, 0.0, 0.0, 1.0)); // get the last column
 	vec3 camera_position = -O*last_col;
 
-        // Current uv coordinates
-        vec2 uv_image = vec2(fragment.uv.x, fragment.uv.y);
+    // Current uv coordinates
+    vec2 uv_image = vec2(fragment.uv.x, fragment.uv.y);
 	if(material.texture_settings.texture_inverse_v) {
 	uv_image.y = 1.0-uv_image.y;
 	}
 	// Renormalize normal
-        //vec3 N = normalize(2.0*texture(normalMap, uv_image).rgb - 1);
-        vec3 N = normalize(fragment.normal);
+    vec3 N = normalize(fragment.normal);
 
 	// Inverse the normal if it is viewed from its back (two-sided surface)
 	//  (note: gl_FrontFacing doesn't work on Mac)
@@ -119,71 +129,58 @@ void main()
 		N = -N;
 	}
 
-	// Phong coefficient (diffuse, specular)
-	// *************************************** //
-
 	// Unit direction toward the light
-	vec3 L = normalize(light);
+	vec3 L = normalize(light); //directionnal light in our case
 
 	// Diffuse coefficient
 	float diffuse_component = max(dot(N,L),0.0);
-	//float diffuse_component = max( max(dot(N,L),0.0), max(dot(-N,L),0.0));
-
-        // Specular coefficient
-	float specular_component = 0.0;
-
-	// Texture
-	// *************************************** //
-
 	
+    // Specular coefficient
+	float specular_component = 0.0;
 
 	// Get the current texture color
 	vec4 color_image_texture = texture(image_texture, uv_image);
-        if(material.texture_settings.use_texture == false) {
-            //color_image_texture=vec4(1.0,1.0,1.0,1.0);
-            //modif
-            color_image_texture=texture(CmpheightMap, uv_image);
+    if(material.texture_settings.use_texture == false) {
+        //color_image_texture=vec4(1.0,1.0,1.0,1.0);
+        //modif
+        color_image_texture=texture(CmpheightMap, uv_image);
 	}
-        //coloring the oceans
-        if (color_image_texture[0]<0.03 && color_image_texture[1]<0.08 && color_image_texture[2]<0.05 ){
-            color_image_texture = texture(CmpheightMap, uv_image);
-            color_image_texture[0]=0;
-            color_image_texture[1]+=0.15;
-            color_image_texture[2]+=0.2;
+    //coloring the oceans
+    if (color_image_texture[0]<0.03 && color_image_texture[1]<0.08 && color_image_texture[2]<0.05 ){
+        color_image_texture = texture(CmpheightMap, uv_image);
+        color_image_texture[0]=0;
+        color_image_texture[1]+=0.15;
+        color_image_texture[2]+=0.2;
 
-            //compute normal
-            vec3 N1=triplanarNormal(fragment.position+mod(-0.005*time,1), fragment.normal, WaveA ,30 ,25 );
-            vec3 N2=triplanarNormal(fragment.position+mod(+0.005*time,1), fragment.normal, WaveB ,30 ,0 );
-            vec3 N3=triplanarNormal(fragment.position+mod(-0.005*time,1), fragment.normal, WaveC ,30 ,0 );
-            vec3 N4=triplanarNormal(fragment.position+mod(+0.005*time,1), fragment.normal, WaveD ,20 ,0 );
+        //compute normal
+        vec3 N1=triplanarNormal(fragment.position+mod(-0.005*time,1), fragment.normal, WaveC ,30 ,0 );
+        vec3 N2=triplanarNormal(fragment.position+mod(+0.005*time,1), fragment.normal, WaveD ,20 ,0 );
+        N=normalize(N1+N2);
 
+        //diffuse component
+        diffuse_component = pow(1.5*max(dot(N,L),0.0) , 2)/1.5;
 
-            N=normalize(N3+N4);
-
-            //diffuse component
-            diffuse_component = max(dot(N,L),0.0);
-
-            //specular component
-            if(diffuse_component>0.0){
-                    vec3 R = reflect(-L,N); // reflection of light vector relative to the normal.
-                    vec3 V = normalize(camera_position-fragment.position);
-                    specular_component = 0.7*pow( max(dot(R,V),0.0), material.phong.specular_exponent*0.2 );
-            }
-
+        //specular component
+        if(diffuse_component>0.0){
+            vec3 R = reflect(-L,N); // reflection of light vector relative to the normal.
+            vec3 V = normalize(camera_position-fragment.position);
+            specular_component = 0.7*pow( max(dot(R,V),0.0), material.phong.specular_exponent*0.2 );
         }
-	
-	// Compute Shading
-	// *************************************** //
 
+    }
+	
 	// Compute the base color of the object based on: vertex color, uniform color, and texture
 	vec3 color_object  = fragment.color * material.color * color_image_texture.rgb;
 
 	// Compute the final shaded color using Phong model
-    float Ka = 3*material.phong.ambient;
+    float Ka =material.phong.ambient;
 	float Kd = material.phong.diffuse;
 	float Ks = material.phong.specular;
-    vec3 color_shading = (Ka + Kd*diffuse_component) * color_object + Ks * specular_component * vec3(1.0, 1.0, 1.0);
-	
+    float shadow = ShadowCalculation(fragment.FragPosLightSpace, L);;
+    vec3 color_shading;
+
+    color_shading = (Ka + (1-shadow) * Kd * diffuse_component) * color_object + (1-shadow) * Ks * specular_component * vec3(1.0,1.0,1.0);
+
 	// Output color, with the alpha component
 	FragColor = vec4(color_shading, material.alpha * color_image_texture.a);
 }

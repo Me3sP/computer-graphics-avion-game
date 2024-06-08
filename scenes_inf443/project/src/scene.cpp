@@ -1,39 +1,13 @@
 #include "scene.hpp"
 
 
-
 using namespace cgp;
-
-
-vec2 scene_structure::raySphere(vec3 sphereCenter, float radius, vec3 rayOrigin, vec3 rayDir) {
-
-	// If ray origin is inside sphere, dstToSphere = 0 
-	// If ray misses sphere, dstToSphere = maxValue; dstThroughSphere = 0 
-
-	vec3 offset = rayOrigin - sphereCenter; 
-	float a =1; // Set to dot(rayDir, rayDir) if rayDir might not be normalized 
-	float b = 2 * dot(offset, rayDir); 
-	float c = dot (offset, offset) - radius * radius; 
-	float d=b*b-4*a*c; // Discriminant from quadratic formula
-
-	// Number of intersections : 0 when d < 0; 1 when d = 0; 2 when d > 0 
-	if (d > 0) {
-		float s = std::sqrt(d);
-		float dstToSphereNear = std::max(0.0f , (-b - s) / (2 * a));
-		float dstToSphereFar = (-b + s) / (2 * a);
-		//Ignore intersections that occur behind the ray 
-		if (dstToSphereFar >= 0) {
-			return vec2(dstToSphereNear, dstToSphereFar - dstToSphereNear);
-		}
-	}
-	// Ray did not intersect sphere return float2(maxFloat, 0);
-	return vec2(maxFloat, 0);
-}
 
 // This function is called only once at the beginning of the program
 // This function can contain any complex operation that can be pre-computed once
 void scene_structure::initialize()
 {
+	
 
 	// Set the behavior of the camera and its initial position
 	// ********************************************** //
@@ -47,32 +21,27 @@ void scene_structure::initialize()
 
 
 	camera_control1.initialize(inputs, window);
-	
 	camera_control1.look_at(
-		light1,
+		cam1,
 		p + vec3(0,0.09f,0.02f),
 		{ 0.0f,1.0f,0.0f });
 
+
 	camera_control2.initialize(inputs, window);
 	camera_control2.look_at(
-		light2,
+		cam2,
 		{ 0.0f,0.0f,1.1f },
 		{ 0.0f,1.0f,0.0f });
 	camera_projection.depth_max = 5000;
 	
-	
 	mesh sun_mesh = mesh_primitive_sphere(0.5f);
 	sun.initialize_data_on_gpu(sun_mesh);
 
-	sun.material.color = environment.sun_color;
-	environment.uniform_generic.uniform_vec3["sun_color"] = environment.sun_color;
+	sun.material.color = { 1.0, 0.647, 0.0 };
 	sun.shader.load(project::path + "shaders/single_color/single_color2.vert.glsl",
 		project::path + "shaders/single_color/single_color2.frag.glsl");
 
 
-
-
-	
 	//set camera to lightview for depth map--------------------------------------------
 	lightcamera.initialize(inputs, window);
 	lightcamera.set_rotation_axis_z(); // camera rotates around z-axis
@@ -83,8 +52,6 @@ void scene_structure::initialize()
 		{ 0,1,0 } /* direction of the "up" vector */);
 	environment.uniform_generic.uniform_mat4["lightview"] = lightcamera.camera_model.matrix_view();
 	environment.uniform_generic.uniform_mat4["lightprojectionMatrix"] = light_projection.matrix();
-	/*std::cout << str_pretty(light_projection.matrix()) << std::endl;
-	std::cout << str_pretty(camera_projection.matrix()) << std::endl;*/
 	//-----------------------------------------------------------------------------
 
 
@@ -97,31 +64,26 @@ void scene_structure::initialize()
 	trajectory = trajectory_drawable(100);
 	trajectory1 = trajectory_drawable(70);
 	trajectory2 = trajectory_drawable(70);
+
     image_structure image_skybox_template = image_load_file(project::path + "assets/skybox.png");
+
     // Split the image into a grid of 4 x 3 sub-images
     std::vector<image_structure> image_grid = image_split_grid(image_skybox_template, 4, 3);
     skybox.initialize_data_on_gpu();
     skybox.texture.initialize_cubemap_on_gpu(image_grid[1], image_grid[7], image_grid[5], image_grid[3], image_grid[10], image_grid[4]);
 
 
-
 	// Create the shapes seen in the 3D scene
 	// ********************************************** //
-
 
 	mesh sphere_terre = mesh_primitive_sphere(1.0f, {0,0,0}, 500, 500);
 
 	terre.initialize_data_on_gpu(sphere_terre);
-	
 	terre.texture.load_and_initialize_texture_2d_on_gpu(project::path + "assets/combined_image_max_quality.jpg");
 	terre.supplementary_texture["heightMap"].load_and_initialize_texture_2d_on_gpu(project::path + "assets/Topo_Custom3.png");
     terre.supplementary_texture["CmpheightMap"].load_and_initialize_texture_2d_on_gpu(project::path + "assets/topo_and_bathy.jpg");
-    terre.supplementary_texture["WaveA"].load_and_initialize_texture_2d_on_gpu(project::path + "assets/Wave_A.png", GL_REPEAT,  GL_REPEAT);
-    terre.supplementary_texture["WaveB"].load_and_initialize_texture_2d_on_gpu(project::path + "assets/Wave_B.png", GL_REPEAT,  GL_REPEAT);
     terre.supplementary_texture["WaveC"].load_and_initialize_texture_2d_on_gpu(project::path + "assets/Wave_C.jpg", GL_REPEAT,  GL_REPEAT);
     terre.supplementary_texture["WaveD"].load_and_initialize_texture_2d_on_gpu(project::path + "assets/Wave_D.jpg", GL_REPEAT,  GL_REPEAT);
-
-
 
 
 	auto struct_shape = mesh_load_file_obj_advanced(project::path + "assets/AVION-HELICE-TEST/", "AVION-HELICE-TEST.obj");
@@ -140,9 +102,9 @@ void scene_structure::initialize()
 
 
 	// Load a shader from a file
-	shader_quad.load(
-		project::path + "shaders/quad/quad.vert.glsl",
-		project::path + "shaders/quad/quad.frag.glsl"
+	single_color.load(
+		project::path + "shaders/single_color/single_color.vert.glsl",
+		project::path + "shaders/single_color/single_color.frag.glsl"
 	);
 
 	shadow.load(
@@ -157,14 +119,10 @@ void scene_structure::initialize()
 		project::path + "shaders/mesh/mesh1.vert.glsl",
 		project::path + "shaders/mesh/mesh1.frag.glsl");
 
-	terre.shader = shader_terre;
-
 	environment.uniform_generic.uniform_float["pi"] = Pi;
 
 	// Initialize multipass renderer
-	/*multi.initialize();
-	multi.set_shader_pass_2(shader_quad);*/
-	
+	multi.initialize();
 
 	std::cout << "End function scene_structure::initialize()" << std::endl;
 
@@ -176,13 +134,16 @@ void scene_structure::initialize()
 void scene_structure::display_frame()
 {
 
+	// ************************************** //
+	// First rendering pass
+	// ************************************* //
+	multi.update_screen_size(window.width, window.height);
+	// 1- Activate the rendering on the FBO
+	multi.start_pass_1();
+
+	environment.uniform_generic.uniform_float["time"] = timer.t;
+
 	vecDir = rotation_transform::from_axis_angle(vecHaut, Pi / 2) * vecRot;
-    //glEnable(GL_CULL_FACE);
-
-    glDepthMask(GL_FALSE); // disable depth-buffer writing
-    draw(skybox, environment);
-    glDepthMask(GL_TRUE);  // re-activate depth-buffer write
-
 
 	if (gui.vue_haut) {
 
@@ -193,12 +154,13 @@ void scene_structure::display_frame()
 			p,
 			-vecDir);
 
+		environment.uniform_generic.uniform_mat4["frame"] = camera_control2.camera_model.matrix_frame();
+		environment.uniform_generic.uniform_mat4["inverse_p"] = camera_projection.matrix_inverse();
+
 		camera_projection.field_of_view = Pi / 25;
 
-
-
 		environment.camera_view = camera_control2.camera_model.matrix_view();
-		
+
 	}
 	else if (gui.overview) {
 		delta_d = 0.01f; // le déplacement élementaire de l'avion quand on fait varier son altitude
@@ -207,6 +169,9 @@ void scene_structure::display_frame()
 		camera_projection.field_of_view = Pi / 4;
 
 		environment.camera_view = camera_control.camera_model.matrix_view();
+
+		environment.uniform_generic.uniform_mat4["frame"] = camera_control.camera_model.matrix_frame();
+		environment.uniform_generic.uniform_mat4["inverse_p"] = camera_projection.matrix_inverse();
 
 		if (shapes[0].model.translation.z > d_max) {
 
@@ -218,15 +183,18 @@ void scene_structure::display_frame()
 			}
 		}
 
-		
+
 	}
-	else{
+	else {
 
 		delta_d = 0.01f; // le déplacement élementaire de l'avion quand on fait varier son altitude
 		d_max = 1.8f;
 
 		camera_projection.field_of_view = Pi / 100;
-		
+
+		environment.uniform_generic.uniform_mat4["frame"] = camera_control1.camera_model.matrix_frame();
+		environment.uniform_generic.uniform_mat4["inverse_p"] = camera_projection.matrix_inverse();
+
 		if (shapes[0].model.translation.z > d_max) {
 
 			float d = shapes[0].model.translation.z - d_max;
@@ -249,12 +217,8 @@ void scene_structure::display_frame()
 			}
 	}
 
-
 	// Update time
 	timer.update();
-	environment.uniform_generic.uniform_float["time"] = timer.t;
-	environment.uniform_generic.uniform_vec3["light"] = environment.light;
-	
 	p = rotation_transform::from_axis_angle(vecRot,w*timer.scale)*p;
 	vecHaut = normalize(p);
 
@@ -264,21 +228,19 @@ void scene_structure::display_frame()
 	trajectory.add(p + 0.025f * vecHaut);
 	trajectory1.add(p + 0.045f*vecRot + 0.025f*vecHaut + 0.01f * vecDir);
 	trajectory2.add(p - 0.045f * vecRot + 0.025f*vecHaut + 0.01f * vecDir);
+	sun.model.translation = environment.light;
+	
+	
+
+	glEnable(GL_CULL_FACE);
+
+	trajectory.visual.shader = shadow;
+	trajectory1.visual.shader = shadow;
+	trajectory2.visual.shader = shadow;
 
 	draw(trajectory, environment);
 	draw(trajectory1, environment);
 	draw(trajectory2, environment);
-	
-
-	//// ************************************** //
-	//// First rendering pass
-	//// ************************************* //
-	//multi.update_screen_size(window.width, window.height);
-
-	//// 1- Activate the rendering on the FBO
-	//multi.start_pass_1();
-
-	//terre.shader = shadow;
 	
 
 	for (int k = 0; k < shapes.size(); ++k) {
@@ -287,31 +249,146 @@ void scene_structure::display_frame()
 		shapes[k].model.rotation = rotation_transform::from_axis_angle(vecRot, w * timer.scale) * shapes[k].model.rotation;
 		shapes[k].model.translation = p;
 
-		//shapes[k].shader = shadow;
+		shapes[k].shader = shadow;
 		
 		draw(shapes[k], environment);
 	}
 
-	sun.model.translation = environment.light;
-	
+	terre.shader = shadow;
 	draw(terre, environment);
-	draw(sun, environment);
+
+	glDisable(GL_CULL_FACE);
 
 	// 3- Stop the rendering on the FBO
-	//multi.end_pass_1();
+	multi.end_pass_1();
+
 
 	// ************************************** //
 	// Second rendering pass
 	// ************************************* //
 
-	// Display the result on a quad taking all the size of the screen
-	//  The quad is associated to a shader with a screen-based effect (ex. image gradient)
-	//  The texture used by the quad is the output texture of the FBO
+	multi.start_pass_2();
 
-	/*multi.start_pass_2();
-	multi.draw_pass_2(environment);
+	environment.uniform_generic.uniform_float["time"] = timer.t;
+	
 
-	multi.end_pass_2();*/
+	vecDir = rotation_transform::from_axis_angle(vecHaut, Pi / 2) * vecRot;
+
+	if (gui.vue_haut) {
+
+		delta_d = 0.1f; // le déplacement élementaire de l'avion quand on fait varier son altitude
+		d_max = 11.1f;
+		camera_control2.look_at(
+			p + 7 * vecHaut,
+			p,
+			-vecDir);
+
+		environment.uniform_generic.uniform_mat4["frame"] = camera_control2.camera_model.matrix_frame();
+		environment.uniform_generic.uniform_mat4["inverse_p"] = camera_projection.matrix_inverse();
+
+		camera_projection.field_of_view = Pi / 25;
+
+		environment.camera_view = camera_control2.camera_model.matrix_view();
+
+	}
+	else if (gui.overview) {
+		delta_d = 0.01f; // le déplacement élementaire de l'avion quand on fait varier son altitude
+		d_max = 1.8f;
+
+		camera_projection.field_of_view = Pi / 4;
+
+		environment.camera_view = camera_control.camera_model.matrix_view();
+
+		environment.uniform_generic.uniform_mat4["frame"] = camera_control.camera_model.matrix_frame();
+		environment.uniform_generic.uniform_mat4["inverse_p"] = camera_projection.matrix_inverse();
+
+		if (shapes[0].model.translation.z > d_max) {
+
+			float d = shapes[0].model.translation.z - d_max;
+
+			for (int k = 0; k < shapes.size(); ++k) {
+
+				shapes[k].model.translation.z = d_max;
+			}
+		}
+
+
+	}
+	else {
+
+		delta_d = 0.01f; // le déplacement élementaire de l'avion quand on fait varier son altitude
+		d_max = 1.8f;
+
+		camera_projection.field_of_view = Pi / 100;
+
+		environment.uniform_generic.uniform_mat4["frame"] = camera_control1.camera_model.matrix_frame();
+		environment.uniform_generic.uniform_mat4["inverse_p"] = camera_projection.matrix_inverse();
+
+		if (shapes[0].model.translation.z > d_max) {
+
+			float d = shapes[0].model.translation.z - d_max;
+
+			for (int k = 0; k < shapes.size(); ++k) {
+
+				shapes[k].model.translation.z = d_max;
+			}
+		}
+
+		camera_control1.look_at(
+			p + 8.0f * vecDir + 10.9f * vecHaut,
+			p - 0.09f * vecDir + 0.02f * vecHaut,
+			-vecDir);
+
+		environment.camera_view = camera_control1.camera_model.matrix_view();
+	}
+
+	// Update time
+	timer.update();
+	p = rotation_transform::from_axis_angle(vecRot, w * timer.scale) * p;
+	vecHaut = normalize(p);
+
+	trajectory.visual.color = { 1.0,0.5, 0.0 };
+	trajectory1.visual.color = { 1.0, 0.5, 0.0 };
+	trajectory2.visual.color = { 1.0,0.5,0.0 };
+	trajectory.add(p + 0.025f * vecHaut);
+	trajectory1.add(p + 0.045f * vecRot + 0.025f * vecHaut + 0.01f * vecDir);
+	trajectory2.add(p - 0.045f * vecRot + 0.025f * vecHaut + 0.01f * vecDir);
+	sun.model.translation = environment.light;
+
+	glDepthMask(GL_FALSE); // disable depth-buffer writing
+	draw(skybox, environment);
+	glDepthMask(GL_TRUE);  // re-activate depth-buffer write
+
+	glEnable(GL_CULL_FACE);
+
+	trajectory.visual.shader = single_color;
+	trajectory1.visual.shader = single_color;
+	trajectory2.visual.shader = single_color;
+
+	draw(trajectory, environment);
+	draw(trajectory1, environment);
+	draw(trajectory2, environment);
+
+
+	for (int k = 0; k < shapes.size(); ++k) {
+
+
+		shapes[k].model.rotation = rotation_transform::from_axis_angle(vecRot, w * timer.scale) * shapes[k].model.rotation;
+		shapes[k].model.translation = p;
+
+		shapes[k].shader = shader;
+
+		draw(shapes[k], environment);
+	}
+
+	terre.shader = shader_terre;
+	terre.supplementary_texture["Depth"] = multi.fbo_pass_1.texture;
+
+	draw(terre, environment);
+
+	glDisable(GL_CULL_FACE);
+
+	draw(sun, environment);
 
 	// Visualisation des maillages de nos differenets objets
 	if (gui.display_wireframe) {
@@ -320,10 +397,11 @@ void scene_structure::display_frame()
 		draw_wireframe(sun, environment);
 	}
 
-
 	// conditional display of the global frame (set via the GUI)
 	if (gui.display_frame)
-    draw(global_frame, environment);
+	draw(global_frame, environment);
+
+	multi.end_pass_2();
 
 }
 
@@ -358,6 +436,13 @@ void scene_structure::mouse_move_event()
 		{
 			vec3 new_position = picking_plane_orthogonal_to_camera(p, pick.position, camera_control.camera_model, camera_projection).position;
 			environment.light = new_position;
+			environment.uniform_generic.uniform_vec3["light"] = environment.light;
+
+			lightcamera.look_at(
+				environment.light  /* position of the camera in the 3D scene */,
+				{ 0,0,0 } /* targeted point in 3D scene */,
+				{ 0,1,0 } /* direction of the "up" vector */);
+			environment.uniform_generic.uniform_mat4["lightview"] = lightcamera.camera_model.matrix_view();
 		}
 	}
 	else
@@ -376,7 +461,6 @@ void scene_structure::idle_frame()
 {
 	//camera_control.idle_frame(environment.camera_view);
 	
-
 	//deplacement de l'avion vers le haut
 	if (inputs.keyboard.up) {
 
@@ -461,8 +545,6 @@ void scene_structure::idle_frame()
 	//mouvement à gauche avion
 	if (inputs.keyboard.left) {
 
-	
-
 			for (int k = 0; k < shapes.size(); ++k) {
 
 				shapes[k].model.rotation = rotation_transform::from_axis_angle(vecHaut,delta_alpha)
@@ -503,8 +585,6 @@ void scene_structure::idle_frame()
 
 	//mouvement à droite avion
 	if (inputs.keyboard.right) {
-
-
 
 		for (int k = 0; k < shapes.size(); ++k) {
 

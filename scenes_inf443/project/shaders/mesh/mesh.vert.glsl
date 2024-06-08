@@ -1,7 +1,5 @@
 #version 330 core
 
-// Vertex shader - this code is executed for every vertex of the shape
-
 // Inputs coming from VBOs
 layout (location = 0) in vec3 vertex_position; // vertex position in local space (x,y,z)
 layout (location = 1) in vec3 vertex_normal;   // vertex normal in local space   (nx,ny,nz)
@@ -21,8 +19,6 @@ out struct fragment_data
 uniform mat4 model; // Model affine transform matrix associated to the current shape
 uniform mat4 view;  // View matrix (rigid transform) of the camera
 uniform mat4 projection; // Projection (perspective or orthogonal) matrix of the camera
-
-
 
 void main()
 {
