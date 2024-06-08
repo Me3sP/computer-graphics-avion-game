@@ -78,6 +78,7 @@ struct scene_structure : cgp::scene_inputs_generic {
 	std::vector<mesh_drawable> shapes;
 
 	picking_structure pick;
+
 	vec3 p = { 0,0,1.1f };
 	vec3 vecRot = { -1,0,0 };
 	vec3 vecHaut = { 0,0,1 };
