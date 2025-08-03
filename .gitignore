@@ -1,6 +1,6 @@
 build/
 *.pdb
 imgui.ini
-*.exe
+# *.exe
 .vs/
 *.o
