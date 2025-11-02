@@ -8,7 +8,7 @@ A 3D interactive simulation featuring the Earth, atmosphere, and an orbiting air
 
 ## 📌 Update (August 3rd, 2025)
 
-This repository is now **public** for YC examiners and others interested in the project.
+This repository is now **public** for others interested in the project.
 
 ✅ A **precompiled executable** has been added, allowing you to **launch the game directly** without compiling.  
 Check the [`/scenes_inf443/project`](./scenes_inf443/project) folder or see [Quick Start](#quick-start) below.
